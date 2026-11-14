@@ -23,6 +23,8 @@ const bikeLaneStyle = {
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
 
+const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
 function getCoords(station) {
   const point = new mapboxgl.LngLat(+station.lon, +station.lat);
   const { x, y } = map.project(point);
@@ -144,6 +146,7 @@ map.on('load', async () => {
     .enter()
     .append('circle')
     .attr('r', (d) => radiusScale(d.totalTraffic))
+    .style('--departure-ratio', (d) => stationFlow(d.departures / d.totalTraffic))
     .each(function (d) {
       d3.select(this)
         .append('title')
@@ -175,7 +178,8 @@ map.on('load', async () => {
     circles
       .data(filteredStations, (d) => d.short_name)
       .join('circle')
-      .attr('r', (d) => radiusScale(d.totalTraffic));
+      .attr('r', (d) => radiusScale(d.totalTraffic))
+      .style('--departure-ratio', (d) => stationFlow(d.departures / d.totalTraffic));
   }
 
   function updateTimeDisplay() {
